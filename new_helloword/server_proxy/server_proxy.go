@@ -1,4 +1,4 @@
-package service_proxy
+package server_proxy
 
 import (
 	"learngo/new_helloword/handler"

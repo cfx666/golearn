@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = ".;proto";
+option go_package = ".;grpc_validate_test.proto";
 
 message HelloRequest {
   string name = 1;        //1是字段的唯一标识，不是字段的顺序是1，也不是name值是1

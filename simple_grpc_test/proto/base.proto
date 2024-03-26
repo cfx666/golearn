@@ -1,0 +1,7 @@
+syntax="proto3";
+option go_package=".;grpc_validate_test.proto";
+
+message Pong {
+  string message = 1;
+}
+message Empty {}
