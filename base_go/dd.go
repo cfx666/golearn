@@ -1,11 +1,37 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/rpc"
+	"net/rpc/jsonrpc"
+)
 
 func main() {
-	mPrint2("hello")
+
+	_ = rpc.RegisterName("HelloService", &HelloService{})
+	http.HandleFunc("/rpcjson", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.Body)
+		var conn io.ReadWriteCloser = struct {
+			io.Writer
+			io.ReadCloser
+		}{
+			w,
+			r.Body,
+		}
+		rpc.ServeRequest(jsonrpc.NewServerCodec(conn))
+
+	})
+	http.ListenAndServe(":8080", nil)
 }
 
-func mPrint2(datas interface{}) {
-	fmt.Println(datas)
+func (s *HelloService) Hello(request string, reply *string) error {
+	fmt.Println(request)
+	*reply = "hello:" + request
+	return nil
+
+}
+
+type HelloService struct {
 }

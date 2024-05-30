@@ -1,0 +1,5 @@
+name: "User-Service"
+port: 8080
+mysql:
+  host: "localhost"
+  port: 3306

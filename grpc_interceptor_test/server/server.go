@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"learngo/grpc_interceptor_test/proto"
 	"net"
+	"time"
 )
 
 func main() {
@@ -22,8 +24,10 @@ func main() {
 		println("after")
 		return
 	}
-	serOpt := grpc.UnaryInterceptor(interceptor)
-	g := grpc.NewServer(serOpt)
+	var serOpts []grpc.ServerOption
+	serOpts = append(serOpts, grpc.UnaryInterceptor(interceptor))
+
+	g := grpc.NewServer(serOpts...)
 	proto.RegisterGreeterServer(g, &HelloServer{})
 	lis, err := net.Listen("tcp", ":8999")
 	if err != nil {
@@ -39,6 +43,10 @@ type HelloServer struct {
 }
 
 func (s *HelloServer) SayHello(ctx context.Context, request *proto.HelloRequest) (*proto.HelloReply, error) {
+
+	fmt.Println("执行开始")
+	time.Sleep(2 * time.Second)
+
 	return &proto.HelloReply{
 		Message: "Hello " + request.Name,
 	}, nil

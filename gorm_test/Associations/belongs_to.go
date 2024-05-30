@@ -17,12 +17,12 @@ func main() {
 			SlowThreshold:             time.Second, // Slow SQL threshold
 			LogLevel:                  logger.Info, // Log level
 			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      true,        // Don't include params in the SQL log
-			Colorful:                  true,        // Disable color
+			ParameterizedQueries:      false,       // Don't include params in the SQL log    select * from `users`  where `users`.`id` = 1
+			Colorful:                  false,       // Disable color
 		},
 	)
 
-	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
+	// 参考 https://github.com/go-sql-driver/mysql#dsn-data-source-name 获取详情
 	dsn := "lpx:lpxlpx@tcp(127.0.0.1:3306)/gorm_test?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
@@ -33,44 +33,55 @@ func main() {
 
 	_ = db.AutoMigrate(&User{})
 
-	/*db.Create(&User{
-		Name: "lpx",
-	}) // 可以看到插入失败了，外键约束，因为没有company_id
+	// 插入
+	/*user := User{Name: "lpx"}
+	db.Create(&user)*/ // 插入失败。CompanyID默认是0，这个字段有外键约束，所以插入失败
 
-	db.Create(&User{
+	/*user := User{
 		Name: "lpx",
 		Company: Company{
-			Name: "家里蹲",
+			Name: "家里蹲公司",
 		},
-	}) // 这样插入就会成功，因为会先插入company表，然后再插入user表
+	}
+	db.Create(&user)*/ // 插入成功，执行的是两条sql，先插入Company，再插入User
 
-	db.Create(&User{
-		Name:      "tom",
+	/*user := User{
+		Name:      "ddf",
 		CompanyID: 1,
-	}) // 如果这里还是和上一条插入一样，就会导致多创建一个公司，所以这里选择对CompanyID赋值，而不是Company
-	*/
-	// 查询
-	/*var user User
-	db.First(&user, 2)
-	fmt.Printf("user的Name为：%s\r\n", user.Name)
-	fmt.Printf("user的Company.ID为：%d\r\n", user.Company.ID) //查询不到Company
+	}
+	db.Create(&user)*/ // 插入成功，只执行一条sql。执行的是插入User的sql
 
-	db.Preload("Company").First(&user, 2) //执行两个sql语句，一个查询company，一个查询user
-	fmt.Printf("user的Company.ID为：%d\r\n", user.Company.ID)
+	/*var user1 User
+	db.First(&user1)  //执行的是一条sql，查询user表
+	fmt.Printf("公司名字：%s\r\n", user1.Company.Name)*/
 
-	db.Joins("Company").First(&user, 2) //执行一个sql语句，使用join查询
-	fmt.Printf("user的Company.ID为：%d\r\n", user.Company.ID)*/
+	/*var user1 User
+	db.Preload("Company").First(&user1) //执行的是两条sql，先查询Company，再查询User
+	fmt.Printf("公司名字：%s\r\n", user1.Company.Name)*/
 
+	/*var user1 User
+	db.Joins("Company").First(&user1) //执行的是一条sql，使用join查询，left join
+	fmt.Printf("公司名字：%s\r\n", user1.Company.Name)*/
+
+	/*type Result struct {
+		Name string
+		Id   int
+	}
+	var result Result
+	db.Model(&User{Model: gorm.Model{ // 自己写join查询来实现查询出company
+		ID: 2,
+	}}).Select("companies.id, companies.name").Joins("left join companies on companies.id = users.company_id").Scan(&result)
+	fmt.Println(result.Id, result.Name)*/
 }
 
 /*type User struct {
 	gorm.Model
-	Name      string
-	CompanyID int
-	Company   Company
+	Name        string
+	CompanyName int
+	Company     Company `gorm:"references:Name"`
 }*/
 
 type Company struct {
 	ID   int
-	Name string
+	Name string `gorm:"index:idx_name"`
 }

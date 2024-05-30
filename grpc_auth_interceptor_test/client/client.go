@@ -35,7 +35,7 @@ func main() {
 		Name: "世界",
 	})
 	if err != nil {
-		panic("调用失败")
+		panic(err)
 	}
 	fmt.Println(r.Message)
 }
